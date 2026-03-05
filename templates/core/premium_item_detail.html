@@ -1,0 +1,347 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ item.title }} - Premium Resources{% endblock %}
+
+{% block extra_css %}
+<style>
+    .video-container {
+        position: relative;
+        padding-bottom: 56.25%; /* 16:9 aspect ratio */
+        height: 0;
+        overflow: hidden;
+        max-width: 100%;
+        background: #000;
+        border-radius: 8px;
+    }
+    
+    .video-container iframe,
+    .video-container video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+    
+    .file-info {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+    
+    .download-btn {
+        transition: transform 0.2s;
+    }
+    
+    .download-btn:hover {
+        transform: translateY(-2px);
+    }
+    
+    .content-type-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 10;
+    }
+    
+    .premium-content {
+        line-height: 1.8;
+    }
+    
+    .premium-content h2 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+    
+    .premium-content ul {
+        margin-bottom: 1.5rem;
+    }
+    
+    .premium-content li {
+        margin-bottom: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'core:premium_hub' %}">Premium Hub</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'core:category_detail' item.category.slug %}">{{ item.category.name }}</a></li>
+            <li class="breadcrumb-item active">{{ item.title }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Media Display -->
+            <div class="card shadow mb-4">
+                {% if item.content_type == 'video' %}
+                    <!-- Video Player -->
+                    <div class="position-relative">
+                        {% if item.video_url %}
+                        <div class="video-container">
+                            <iframe src="{{ item.video_url }}" 
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                    allowfullscreen>
+                            </iframe>
+                        </div>
+                        {% elif item.video_file %}
+                        <video controls class="w-100">
+                            <source src="{{ item.video_file.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        {% endif %}
+                        
+                        {% if item.video_duration %}
+                        <span class="badge bg-dark content-type-badge">
+                            <i class="fas fa-clock me-1"></i> {{ item.video_duration }}
+                        </span>
+                        {% endif %}
+                    </div>
+                {% elif item.thumbnail %}
+                    <!-- Thumbnail -->
+                    <img src="{{ item.thumbnail.url }}" class="card-img-top" alt="{{ item.title }}">
+                {% endif %}
+                
+                <div class="card-body">
+                    <!-- Title and Badge -->
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h1 class="h2">{{ item.title }}</h1>
+                        <span class="badge bg-{% if item.required_plan == 'free' %}secondary{% elif item.required_plan == 'pro' %}primary{% else %}success{% endif %} fs-6 p-2">
+                            <i class="fas fa-crown me-1"></i>{{ item.required_plan|title }}
+                        </span>
+                    </div>
+                    
+                    <!-- Content Type Badge -->
+                    <div class="mb-3">
+                        <span class="badge bg-info">
+                            <i class="fas {{ item.get_icon }} me-1"></i>
+                            {{ item.get_content_type_display }}
+                        </span>
+                    </div>
+                    
+                    <p class="lead text-muted">{{ item.description }}</p>
+                    
+                    <hr>
+                    
+                    <!-- Premium Content -->
+                    <div class="premium-content mt-4">
+                        {{ item.content|safe }}
+                    </div>
+                                        
+                    <!-- Download Section - Shows for ANY file type -->
+                    {% if item.pdf_file or item.video_file or item.code_file %}
+                    <hr>
+                    <div class="file-info">
+                        <h5 class="mb-3"><i class="fas fa-download me-2"></i>Downloads</h5>
+                        
+                        <!-- PDF Download -->
+                        {% if item.pdf_file %}
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-2 border rounded">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-file-pdf fa-2x text-danger me-3"></i>
+                                <div>
+                                    <strong>{{ item.title }}.pdf</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-file me-1"></i> PDF Document
+                                        {% if item.file_size %} • {{ item.file_size }}{% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            <a href="{% url 'core:download_item' item.id %}?type=pdf" class="btn btn-danger">
+                                <i class="fas fa-download me-1"></i> Download
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Video Download -->
+                        {% if item.video_file %}
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-2 border rounded">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-video fa-2x text-primary me-3"></i>
+                                <div>
+                                    <strong>{{ item.title }}.mp4</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i> {{ item.video_duration|default:"Video" }}
+                                        {% if item.file_size %} • {{ item.file_size }}{% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            <a href="{% url 'core:download_item' item.id %}?type=video" class="btn btn-primary">
+                                <i class="fas fa-download me-1"></i> Download
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Code Download -->
+                        {% if item.code_file %}
+                        <div class="d-flex justify-content-between align-items-center mb-3 p-2 border rounded">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-file-code fa-2x text-warning me-3"></i>
+                                <div>
+                                    <strong>{{ item.title }}.zip</strong>
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-code me-1"></i> Source Code
+                                        {% if item.file_size %} • {{ item.file_size }}{% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                            <a href="{% url 'core:download_item' item.id %}?type=code" class="btn btn-warning">
+                                <i class="fas fa-download me-1"></i> Download
+                            </a>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Download Count -->
+                        {% if item.download_count > 0 %}
+                        <div class="text-center mt-3">
+                            <small class="text-muted">
+                                <i class="fas fa-users me-1"></i>
+                                Downloaded {{ item.download_count }} time{{ item.download_count|pluralize }}
+                            </small>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Share Buttons -->
+                    <div class="mt-4">
+                        <h6 class="mb-2">Share this resource:</h6>
+                        <div class="btn-group" role="group">
+                            <a href="https://twitter.com/intent/tweet?text={{ item.title }}&url={{ request.build_absolute_uri }}" 
+                               target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fab fa-twitter"></i>
+                            </a>
+                            <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.build_absolute_uri }}" 
+                               target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fab fa-linkedin"></i>
+                            </a>
+                            <a href="mailto:?subject={{ item.title }}&body=Check out this resource: {{ request.build_absolute_uri }}" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-envelope"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Info Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Resource Info</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-3">
+                            <i class="fas fa-folder text-primary me-2"></i>
+                            <strong>Category:</strong> 
+                            <a href="{% url 'core:category_detail' item.category.slug %}" class="text-decoration-none">
+                                {{ item.category.name }}
+                            </a>
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-tag text-primary me-2"></i>
+                            <strong>Type:</strong> {{ item.get_content_type_display }}
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-calendar text-primary me-2"></i>
+                            <strong>Published:</strong> {{ item.created_at|date:"F d, Y" }}
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-sync text-primary me-2"></i>
+                            <strong>Updated:</strong> {{ item.updated_at|date:"F d, Y" }}
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-eye text-primary me-2"></i>
+                            <strong>Views:</strong> {{ item.view_count }}
+                        </li>
+                        <li class="mb-3">
+                            <i class="fas fa-crown text-warning me-2"></i>
+                            <strong>Required Plan:</strong> 
+                            <span class="badge bg-{% if item.required_plan == 'free' %}secondary{% elif item.required_plan == 'pro' %}primary{% else %}success{% endif %}">
+                                {{ item.required_plan|title }}
+                            </span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Progress Tracking (for authenticated users) -->
+            {% if user.is_authenticated %}
+            <div class="card shadow mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Your Progress</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <button class="btn btn-outline-primary" onclick="markAsComplete()">
+                            <i class="fas fa-check-circle me-1"></i> Mark as Completed
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Related Items -->
+            {% if related_items %}
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-link me-2"></i>More in {{ item.category.name }}</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    {% for related in related_items %}
+                    <a href="{% url 'core:premium_item_detail' item.category.slug related.slug %}" 
+                       class="list-group-item list-group-item-action">
+                        <div class="d-flex align-items-center">
+                            <i class="fas {{ related.get_icon }} fa-fw me-2 text-primary"></i>
+                            <div>
+                                <h6 class="mb-0">{{ related.title }}</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-eye me-1"></i> {{ related.view_count }} views
+                                    {% if related.content_type %}
+                                    • {{ related.get_content_type_display }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function markAsComplete() {
+    // AJAX call to mark item as complete
+    fetch('{% url "core:mark_complete" item.id %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Progress saved!');
+        }
+    });
+}
+</script>
+{% endblock %}

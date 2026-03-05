@@ -1,0 +1,334 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Billing History - Subscription Showcase{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header with actions -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2 class="mb-1">Billing History</h2>
+                    <p class="text-muted">View and manage your payment history</p>
+                </div>
+                <div>
+                    <a href="{% url 'subscriptions:plans' %}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle me-1"></i> Upgrade Plan
+                    </a>
+                    <a href="{% url 'subscriptions:manage' %}" class="btn btn-outline-secondary ms-2">
+                        <i class="fas fa-cog me-1"></i> Manage
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Billing History Card -->
+            <div class="card shadow">
+                <div class="card-header bg-white py-3">
+                    <ul class="nav nav-tabs card-header-tabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#all" data-bs-toggle="tab">
+                                All Transactions
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#successful" data-bs-toggle="tab">
+                                Successful
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#pending" data-bs-toggle="tab">
+                                Pending
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="card-body p-0">
+                    <div class="tab-content">
+                        <!-- All Transactions Tab -->
+                        <div class="tab-pane fade show active" id="all">
+                            {% if payments %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th class="py-3">Date</th>
+                                                <th class="py-3">Description</th>
+                                                <th class="py-3">Plan</th>
+                                                <th class="py-3 text-end">Amount</th>
+                                                <th class="py-3 text-center">Status</th>
+                                                <th class="py-3 text-center">Invoice</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for payment in payments %}
+                                            <tr>
+                                                <td class="py-3">
+                                                    <div>{{ payment.created_at|date:"M d, Y" }}</div>
+                                                    <small class="text-muted">{{ payment.created_at|date:"H:i" }}</small>
+                                                </td>
+                                                <td class="py-3">
+                                                    <div class="fw-medium">{{ payment.description|default:"Subscription Payment" }}</div>
+                                                    <small class="text-muted">ID: {{ payment.stripe_payment_intent_id|truncatechars:12 }}</small>
+                                                </td>
+                                                <td class="py-3">
+                                                    {% if payment.subscription and payment.subscription.plan %}
+                                                        <span class="badge bg-info">{{ payment.subscription.plan.name }}</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary">-</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="py-3 text-end">
+                                                    <strong class="fs-5">${{ payment.amount }}</strong>
+                                                    <small class="text-muted">{{ payment.currency|upper }}</small>
+                                                </td>
+                                                <td class="py-3 text-center">
+                                                    {% if payment.status == 'succeeded' %}
+                                                        <span class="badge bg-success px-3 py-2">
+                                                            <i class="fas fa-check-circle me-1"></i> Paid
+                                                        </span>
+                                                    {% elif payment.status == 'pending' %}
+                                                        <span class="badge bg-warning px-3 py-2">
+                                                            <i class="fas fa-clock me-1"></i> Pending
+                                                        </span>
+                                                    {% elif payment.status == 'failed' %}
+                                                        <span class="badge bg-danger px-3 py-2">
+                                                            <i class="fas fa-exclamation-circle me-1"></i> Failed
+                                                        </span>
+                                                    {% elif payment.status == 'refunded' %}
+                                                        <span class="badge bg-info px-3 py-2">
+                                                            <i class="fas fa-undo me-1"></i> Refunded
+                                                        </span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="py-3 text-center">
+                                                    {% if payment.invoice_url %}
+                                                        <a href="{{ payment.invoice_url }}" target="_blank" class="btn btn-sm btn-outline-primary" title="View Invoice">
+                                                            <i class="fas fa-file-invoice"></i>
+                                                            <span class="ms-1 d-none d-md-inline">View</span>
+                                                        </a>
+                                                    {% else %}
+                                                        <button class="btn btn-sm btn-outline-secondary" disabled title="Invoice not available">
+                                                            <i class="fas fa-file-invoice"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                </td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <div class="mb-4">
+                                        <i class="fas fa-receipt fa-5x text-muted opacity-50"></i>
+                                    </div>
+                                    <h4 class="mb-2">No Payment History</h4>
+                                    <p class="text-muted mb-4">You haven't made any payments yet. Subscribe to a plan to get started!</p>
+                                    <a href="{% url 'subscriptions:plans' %}" class="btn btn-primary btn-lg">
+                                        <i class="fas fa-rocket me-2"></i>View Available Plans
+                                    </a>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Successful Transactions Tab -->
+                        <div class="tab-pane fade" id="successful">
+                            {% with successful_payments=payments|dictsortreversed:"created_at" %}
+                                {% if successful_payments %}
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0">
+                                            <thead class="bg-light">
+                                                <tr>
+                                                    <th class="py-3">Date</th>
+                                                    <th class="py-3">Description</th>
+                                                    <th class="py-3">Plan</th>
+                                                    <th class="py-3 text-end">Amount</th>
+                                                    <th class="py-3 text-center">Invoice</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for payment in successful_payments %}
+                                                    {% if payment.status == 'succeeded' %}
+                                                    <tr>
+                                                        <td class="py-3">{{ payment.created_at|date:"M d, Y" }}</td>
+                                                        <td class="py-3">{{ payment.description|default:"Subscription Payment" }}</td>
+                                                        <td class="py-3">
+                                                            {% if payment.subscription and payment.subscription.plan %}
+                                                                <span class="badge bg-info">{{ payment.subscription.plan.name }}</span>
+                                                            {% endif %}
+                                                        </td>
+                                                        <td class="py-3 text-end">${{ payment.amount }}</td>
+                                                        <td class="py-3 text-center">
+                                                            {% if payment.invoice_url %}
+                                                                <a href="{{ payment.invoice_url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                                                    <i class="fas fa-file-invoice"></i>
+                                                                </a>
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center py-5">
+                                        <p class="text-muted">No successful transactions yet.</p>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        
+                        <!-- Pending Transactions Tab -->
+                        <div class="tab-pane fade" id="pending">
+                            {% with pending_payments=payments %}
+                                {% if pending_payments %}
+                                    <div class="table-responsive">
+                                        <table class="table table-hover mb-0">
+                                            <thead class="bg-light">
+                                                <tr>
+                                                    <th class="py-3">Date</th>
+                                                    <th class="py-3">Description</th>
+                                                    <th class="py-3">Amount</th>
+                                                    <th class="py-3 text-center">Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {% for payment in pending_payments %}
+                                                    {% if payment.status == 'pending' or payment.status == 'failed' %}
+                                                    <tr>
+                                                        <td class="py-3">{{ payment.created_at|date:"M d, Y" }}</td>
+                                                        <td class="py-3">{{ payment.description|default:"Subscription Payment" }}</td>
+                                                        <td class="py-3">${{ payment.amount }}</td>
+                                                        <td class="py-3 text-center">
+                                                            {% if payment.status == 'pending' %}
+                                                                <span class="badge bg-warning">Pending</span>
+                                                            {% else %}
+                                                                <span class="badge bg-danger">Failed</span>
+                                                            {% endif %}
+                                                        </td>
+                                                    </tr>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center py-5">
+                                        <p class="text-muted">No pending transactions.</p>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Card Footer with Summary -->
+                {% if payments %}
+                <div class="card-footer bg-white py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <p class="mb-0 text-muted">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Showing {{ payments|length }} transaction{{ payments|length|pluralize }}
+                            </p>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <p class="mb-0">
+                                <strong>Need help?</strong>
+                                <a href="#" class="text-primary ms-2">Contact Support</a>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Payment Methods Card -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment Methods</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fab fa-cc-visa fa-3x text-primary me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">Visa ending in 4242</h6>
+                                    <p class="text-muted small mb-0">Expires 12/25 • Default payment method</p>
+                                </div>
+                                <span class="badge bg-success ms-auto">Default</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center p-3 border rounded">
+                                <i class="fab fa-cc-mastercard fa-3x text-primary me-3"></i>
+                                <div>
+                                    <h6 class="mb-1">Mastercard ending in 5555</h6>
+                                    <p class="text-muted small mb-0">Expires 08/24</p>
+                                </div>
+                                <button class="btn btn-sm btn-outline-primary ms-auto">Set Default</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-plus me-1"></i>Add Payment Method
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Billing Info Card -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Billing Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Billing Address</h6>
+                            <address class="text-muted">
+                                {% if user.profile.address %}
+                                    {{ user.profile.address|linebreaksbr }}
+                                {% else %}
+                                    123 Main Street<br>
+                                    San Francisco, CA 94105<br>
+                                    United States
+                                {% endif %}
+                            </address>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Tax Information</h6>
+                            <p class="text-muted mb-1">VAT Number: Not provided</p>
+                            <p class="text-muted small">Tax is calculated based on your location.</p>
+                            <button class="btn btn-sm btn-outline-secondary">Update Tax Info</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this JavaScript for tab functionality if not using Bootstrap JS -->
+{% block extra_js %}
+<script>
+    // Enable Bootstrap tabs
+    document.addEventListener('DOMContentLoaded', function() {
+        var triggerTabList = [].slice.call(document.querySelectorAll('.nav-tabs a'));
+        triggerTabList.forEach(function(triggerEl) {
+            var tabTrigger = new bootstrap.Tab(triggerEl);
+            triggerEl.addEventListener('click', function(event) {
+                event.preventDefault();
+                tabTrigger.show();
+            });
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

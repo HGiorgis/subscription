@@ -1,0 +1,12 @@
+<li class="nav-item">
+    <a class="nav-link" href="{% url 'core:premium_hub' %}">
+        <i class="fas fa-crown"></i> Premium Hub
+    </a>
+</li>
+{% if user.is_authenticated %}
+    <li class="nav-item">
+        <a class="nav-link" href="{% url 'core:my_downloads' %}">
+            <i class="fas fa-download"></i> My Downloads
+        </a>
+    </li>
+{% endif %}

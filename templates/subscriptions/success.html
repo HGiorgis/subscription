@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Successful - Subscription Showcase{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body text-center p-5">
+                    <!-- Success Icon -->
+                    <div class="mb-4">
+                        <div class="bg-success text-white rounded-circle d-inline-flex p-3">
+                            <i class="fas fa-check fa-4x"></i>
+                        </div>
+                    </div>
+                    
+                    <h2 class="mb-3">Payment Successful!</h2>
+                    <p class="lead text-muted mb-4">Thank you for subscribing to our premium plan.</p>
+                    
+                    <!-- Subscription Details -->
+                    {% if subscription %}
+                    <div class="alert alert-success text-start">
+                        <h5 class="alert-heading mb-3">
+                            <i class="fas fa-crown me-2"></i>
+                            {{ subscription.plan.name }} Plan Activated!
+                        </h5>
+                        <div class="row">
+                            <div class="col-sm-6 mb-2">
+                                <small class="text-muted d-block">Plan</small>
+                                <strong>{{ subscription.plan.name }}</strong>
+                            </div>
+                            <div class="col-sm-6 mb-2">
+                                <small class="text-muted d-block">Price</small>
+                                <strong>${{ subscription.plan.price }}/month</strong>
+                            </div>
+                            <div class="col-sm-6 mb-2">
+                                <small class="text-muted d-block">Start Date</small>
+                                <strong>{{ subscription.start_date|date:"F d, Y" }}</strong>
+                            </div>
+                            <div class="col-sm-6 mb-2">
+                                <small class="text-muted d-block">Next Billing</small>
+                                <strong>{{ subscription.end_date|date:"F d, Y" }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-spinner fa-spin me-2"></i>
+                        Your subscription is being activated. This page will update automatically...
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-3 mt-4">
+                        <a href="{% url 'accounts:dashboard' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                        </a>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <a href="{% url 'subscriptions:billing_history' %}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-history me-2"></i>View Billing History
+                                </a>
+                            </div>
+                            <div class="col-md-6">
+                                <a href="{% url 'subscriptions:manage' %}" class="btn btn-outline-secondary w-100">
+                                    <i class="fas fa-cog me-2"></i>Manage Subscription
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Auto-refresh if no subscription yet -->
+{% if not subscription %}
+<script>
+    // Check every 2 seconds if subscription is created
+    function checkSubscription() {
+        fetch(window.location.href)
+            .then(response => response.text())
+            .then(html => {
+                if (html.includes('Plan Activated!')) {
+                    window.location.reload();
+                }
+            });
+    }
+    setInterval(checkSubscription, 2000);
+    
+    // Also reload after 10 seconds as fallback
+    setTimeout(function() {
+        window.location.reload();
+    }, 10000);
+</script>
+{% endif %}
+{% endblock %}

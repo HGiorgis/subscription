@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Edit Profile - Subscription Showcase{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h4 class="mb-0">Edit Profile</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h5 class="mb-3">Account Information</h5>
+                                {{ user_form|crispy }}
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <h5 class="mb-3">Profile Picture</h5>
+                                {% if user.profile.profile_picture %}
+                                    <img src="{{ user.profile.profile_picture.url }}" alt="Profile" class="rounded-circle img-fluid mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                                {% else %}
+                                    <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 150px; height: 150px;">
+                                        <i class="fas fa-user fa-4x text-white"></i>
+                                    </div>
+                                {% endif %}
+                                {{ profile_form.profile_picture|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <h5 class="mb-3">Contact Information</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ profile_form.phone|as_crispy_field }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ profile_form.address|as_crispy_field }}
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'accounts:dashboard' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
