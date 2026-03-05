@@ -1,54 +1,934 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Home - PremiumHub{% endblock %}
+{% block title %}PremiumHub • Modern Subscription Management Platform{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section Animations */
+    .hero-title {
+        animation: fadeInUp 0.8s ease-out;
+    }
+    
+    .hero-subtitle {
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+    
+    .hero-cta {
+        animation: fadeInUp 0.8s ease-out 0.4s both;
+    }
+    
+    .hero-image {
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Stats Counter Animation */
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: var(--gradient-primary);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+    }
+    
+    /* Feature Cards */
+    .feature-card {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--gradient-primary);
+        transform: scaleX(0);
+        transition: transform 0.6s ease;
+        transform-origin: left;
+    }
+    
+    .feature-card:hover::before {
+        transform: scaleX(1);
+    }
+    
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        background: var(--primary-light);
+        border-radius: var(--radius-xl);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .feature-card:hover .feature-icon {
+        background: var(--primary);
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    .feature-card:hover .feature-icon i {
+        color: white;
+    }
+    
+    .feature-icon i {
+        font-size: 1.8rem;
+        color: var(--primary);
+        transition: all 0.3s ease;
+    }
+    
+    /* Plan Cards */
+    .plan-card {
+        position: relative;
+        transition: all 0.3s ease;
+    }
+    
+    .plan-card.popular {
+        transform: scale(1.05);
+        border: 2px solid var(--primary);
+        box-shadow: var(--shadow-2xl);
+        z-index: 2;
+    }
+    
+    .plan-card.popular::before {
+        content: 'MOST POPULAR';
+        position: absolute;
+        top: -12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--gradient-primary);
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 700;
+        padding: 0.25rem 1rem;
+        border-radius: var(--radius-full);
+        letter-spacing: 1px;
+        white-space: nowrap;
+    }
+    
+    .plan-price {
+        font-size: 3rem;
+        font-weight: 800;
+        color: var(--gray-900);
+        line-height: 1;
+    }
+    
+    .plan-price-period {
+        color: var(--gray-500);
+        font-size: 1rem;
+        font-weight: 400;
+    }
+    
+    .plan-feature {
+        padding: 0.5rem 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        color: var(--gray-600);
+    }
+    
+    .plan-feature i {
+        color: var(--success);
+        font-size: 0.9rem;
+    }
+    
+    /* Testimonial Cards */
+    .testimonial-card {
+        background: var(--white);
+        border-radius: var(--radius-2xl);
+        padding: 2rem;
+        box-shadow: var(--shadow-lg);
+        transition: all 0.3s ease;
+        height: 100%;
+    }
+    
+    .testimonial-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-2xl);
+    }
+    
+    .testimonial-rating {
+        color: #fbbf24;
+        margin-bottom: 1rem;
+    }
+    
+    .testimonial-text {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: var(--gray-600);
+        margin-bottom: 1.5rem;
+        font-style: italic;
+    }
+    
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .testimonial-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: var(--radius-full);
+        background: var(--primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+    
+    .testimonial-info h6 {
+        font-weight: 700;
+        margin-bottom: 0.25rem;
+    }
+    
+    .testimonial-info p {
+        font-size: 0.85rem;
+        color: var(--gray-500);
+        margin: 0;
+    }
+    
+    /* CTA Section */
+    .cta-section {
+        background: linear-gradient(135deg, var(--gray-900) 0%, var(--gray-800) 100%);
+        border-radius: var(--radius-3xl);
+        padding: 4rem;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 300px;
+        height: 300px;
+        background: var(--gradient-primary);
+        border-radius: 50%;
+        filter: blur(100px);
+        opacity: 0.15;
+    }
+    
+    .cta-section::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 200px;
+        height: 200px;
+        background: var(--gradient-secondary);
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.1;
+    }
+    
+    .cta-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .cta-text {
+        color: var(--gray-300);
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* FAQ Section */
+    .faq-item {
+        border-bottom: 1px solid var(--gray-200);
+        padding: 1.5rem 0;
+        cursor: pointer;
+    }
+    
+    .faq-item:last-child {
+        border-bottom: none;
+    }
+    
+    .faq-question {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        color: var(--gray-800);
+        font-size: 1.1rem;
+    }
+    
+    .faq-question i {
+        color: var(--primary);
+        transition: transform 0.3s ease;
+    }
+    
+    .faq-item.active .faq-question i {
+        transform: rotate(45deg);
+    }
+    
+    .faq-answer {
+        margin-top: 1rem;
+        color: var(--gray-600);
+        line-height: 1.7;
+        display: none;
+    }
+    
+    .faq-item.active .faq-answer {
+        display: block;
+        animation: fadeIn 0.5s ease;
+    }
+    
+    /* Stats Section */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem;
+        text-align: center;
+    }
+    
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .cta-section {
+            padding: 3rem 1.5rem;
+        }
+        
+        .cta-title {
+            font-size: 1.8rem;
+        }
+        
+        .plan-card.popular {
+            transform: scale(1);
+        }
+    }
+    
+    /* Integration Logos */
+    .integration-logo {
+        filter: grayscale(100%);
+        opacity: 0.5;
+        transition: all 0.3s ease;
+        max-height: 30px;
+    }
+    
+    .integration-logo:hover {
+        filter: grayscale(0%);
+        opacity: 1;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
-<section class="py-5">
-    <div class="container text-center py-4">
-        <h1 class="display-4 fw-bold mb-4">Simple Subscription Management</h1>
-        <p class="lead text-muted mb-4">A clean and modern platform for managing your premium subscriptions</p>
-        
-        {% if not user.is_authenticated %}
-            <div>
-                <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg px-4 me-2">Get Started</a>
-                <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-lg px-4">Login</a>
+<section class="position-relative overflow-hidden py-5">
+    <div class="container py-5">
+        <div class="row align-items-center min-vh-50">
+            <div class="col-lg-6">
+                <span class="badge bg-primary-light text-primary fw-bold px-3 py-2 mb-4">
+                    <i class="fas fa-rocket me-2"></i>Trusted by 10,000+ businesses
+                </span>
+                <h1 class="hero-title display-3 fw-bold mb-4">
+                    Simplify Your 
+                    <span class="text-gradient">Subscriptions</span>
+                    <br>Management
+                </h1>
+                <p class="hero-subtitle lead text-muted mb-5">
+                    The all-in-one platform to manage, track, and optimize your subscriptions. 
+                    Save time, reduce costs, and grow your revenue with PremiumHub.
+                </p>
+                <div class="hero-cta d-flex flex-wrap gap-3">
+                    <a href="{% url 'subscriptions:plans' %}" class="btn btn-primary btn-lg px-5">
+                        Start Free Trial
+                        <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                    <a href="#" class="btn btn-outline-primary btn-lg px-5">
+                        <i class="fas fa-play-circle me-2"></i>
+                        Watch Demo
+                    </a>
+                </div>
+                <div class="mt-5 d-flex align-items-center gap-4">
+                    <div class="d-flex align-items-center">
+                        <div class="d-flex">
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                            <i class="fas fa-star text-warning"></i>
+                        </div>
+                        <span class="ms-2 text-muted">4.9/5 from 2k+ reviews</span>
+                    </div>
+                </div>
             </div>
-        {% else %}
-            <a href="{% url 'accounts:dashboard' %}" class="btn btn-primary btn-lg px-4">Go to Dashboard</a>
-        {% endif %}
+            <div class="col-lg-6">
+                <div class="hero-image position-relative">
+                    <!-- Dashboard Preview -->
+                    <div class="card shadow-2xl border-0">
+                        <div class="card-body p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="d-flex gap-2">
+                                    <div class="bg-primary-light p-2 rounded">
+                                        <i class="fas fa-chart-line text-primary"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold mb-0">Monthly Revenue</h6>
+                                        <small class="text-muted">+23% vs last month</small>
+                                    </div>
+                                </div>
+                                <span class="badge bg-success-light text-success">Live</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-3">
+                                <div>
+                                    <span class="text-muted small">Active Subscriptions</span>
+                                    <h3 class="fw-bold mb-0">12,345</h3>
+                                </div>
+                                <div>
+                                    <span class="text-muted small">MRR</span>
+                                    <h3 class="fw-bold mb-0 text-primary">$124.5K</h3>
+                                </div>
+                            </div>
+                            <div class="progress mb-4" style="height: 8px;">
+                                <div class="progress-bar" style="width: 75%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted small">
+                                <span><i class="fas fa-circle text-primary me-1"></i>Premium</span>
+                                <span><i class="fas fa-circle text-success me-1"></i>Pro</span>
+                                <span><i class="fas fa-circle text-warning me-1"></i>Basic</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Floating Elements -->
+                    <div class="position-absolute top-0 end-0 translate-middle-y d-none d-lg-block">
+                        <div class="bg-white rounded-circle p-3 shadow-lg">
+                            <i class="fas fa-check-circle fa-2x text-success"></i>
+                        </div>
+                    </div>
+                    <div class="position-absolute bottom-0 start-0 translate-middle-y d-none d-lg-block">
+                        <div class="bg-white rounded-circle p-3 shadow-lg">
+                            <i class="fas fa-crown fa-2x text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Trusted By Section -->
+<section class="py-5 bg-gray-50">
+    <div class="container">
+        <p class="text-center text-muted mb-4">Trusted by innovative companies worldwide</p>
+        <div class="row justify-content-center align-items-center g-4">
+            <div class="col-6 col-md-3 col-lg-2">
+                <img src="https://via.placeholder.com/150x50/6366f1/ffffff?text=Company+1" alt="Company" class="integration-logo img-fluid">
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <img src="https://via.placeholder.com/150x50/7c3aed/ffffff?text=Company+2" alt="Company" class="integration-logo img-fluid">
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <img src="https://via.placeholder.com/150x50/2563eb/ffffff?text=Company+3" alt="Company" class="integration-logo img-fluid">
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <img src="https://via.placeholder.com/150x50/059669/ffffff?text=Company+4" alt="Company" class="integration-logo img-fluid">
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <img src="https://via.placeholder.com/150x50/dc2626/ffffff?text=Company+5" alt="Company" class="integration-logo img-fluid">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="stats-grid">
+            <div>
+                <div class="stat-number">10K+</div>
+                <p class="text-muted">Active Users</p>
+            </div>
+            <div>
+                <div class="stat-number">$124M</div>
+                <p class="text-muted">Revenue Processed</p>
+            </div>
+            <div>
+                <div class="stat-number">99.9%</div>
+                <p class="text-muted">Uptime SLA</p>
+            </div>
+            <div>
+                <div class="stat-number">24/7</div>
+                <p class="text-muted">Support</p>
+            </div>
+        </div>
     </div>
 </section>
 
 <!-- Features Section -->
 <section class="py-5 bg-light">
     <div class="container">
-        <h5 class="text-center fw-bold mb-4">Key Features</h5>
+        <div class="text-center mb-5">
+            <span class="badge bg-primary-light text-primary fw-bold px-3 py-2 mb-3">
+                <i class="fas fa-magic me-2"></i>Powerful Features
+            </span>
+            <h2 class="display-5 fw-bold mb-3">Everything You Need to Manage Subscriptions</h2>
+            <p class="lead text-muted mx-auto" style="max-width: 600px;">
+                Powerful tools to help you manage, track, and grow your subscription business.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Feature 1 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 border-0 shadow-lg p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Analytics Dashboard</h5>
+                    <p class="text-muted mb-0">
+                        Get real-time insights into your subscription metrics, revenue, and customer behavior.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 border-0 shadow-lg p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Automated Billing</h5>
+                    <p class="text-muted mb-0">
+                        Automate invoicing, payment collection, and dunning management with Stripe integration.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 border-0 shadow-lg p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Customer Management</h5>
+                    <p class="text-muted mb-0">
+                        Manage customer profiles, subscription history, and communication in one place.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 border-0 shadow-lg p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Secure Authentication</h5>
+                    <p class="text-muted mb-0">
+                        Enterprise-grade security with 2FA, SSO, and advanced encryption.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 border-0 shadow-lg p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Billing History</h5>
+                    <p class="text-muted mb-0">
+                        Complete payment history, invoices, and tax documents for every transaction.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card feature-card h-100 border-0 shadow-lg p-4">
+                    <div class="feature-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Priority Support</h5>
+                    <p class="text-muted mb-0">
+                        24/7 customer support with dedicated account managers for premium plans.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Pricing Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary-light text-primary fw-bold px-3 py-2 mb-3">
+                <i class="fas fa-tag me-2"></i>Simple Pricing
+            </span>
+            <h2 class="display-5 fw-bold mb-3">Choose Your Perfect Plan</h2>
+            <p class="lead text-muted mx-auto" style="max-width: 600px;">
+                Transparent pricing with no hidden fees. Upgrade or cancel anytime.
+            </p>
+        </div>
+
+        <div class="row justify-content-center align-items-stretch g-4">
+            <!-- Free Plan -->
+            <div class="col-lg-4">
+                <div class="card plan-card h-100 border-0 shadow-lg">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">Free</h5>
+                        <div class="mb-4">
+                            <span class="plan-price">$0</span>
+                            <span class="plan-price-period">/month</span>
+                        </div>
+                        <p class="text-muted small mb-4">Perfect for getting started</p>
+                        
+                        <div class="mb-4">
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Up to 3 active subscriptions</span>
+                            </div>
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Basic analytics</span>
+                            </div>
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Email support</span>
+                            </div>
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>30-day history</span>
+                            </div>
+                        </div>
+
+                        <a href="{% url 'accounts:register' %}" class="btn btn-outline-primary w-100">
+                            Get Started
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pro Plan (Popular) -->
+            <div class="col-lg-4">
+                <div class="card plan-card popular h-100 border-0 shadow-2xl">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">Pro</h5>
+                        <div class="mb-4">
+                            <span class="plan-price">$29</span>
+                            <span class="plan-price-period">/month</span>
+                        </div>
+                        <p class="text-muted small mb-4">For growing businesses</p>
+                        
+                        <div class="mb-4">
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Unlimited subscriptions</span>
+                            </div>
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Advanced analytics & reports</span>
+                            </div>
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Priority support 24/7</span>
+                            </div>
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>1-year history</span>
+                            </div>
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>API access</span>
+                            </div>
+                        </div>
+
+                        <a href="{% url 'accounts:register' %}?plan=pro" class="btn btn-primary w-100">
+                            Start Free Trial
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Plan -->
+            <div class="col-lg-4">
+                <div class="card plan-card h-100 border-0 shadow-lg">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">Business</h5>
+                        <div class="mb-4">
+                            <span class="plan-price">$99</span>
+                            <span class="plan-price-period">/month</span>
+                        </div>
+                        <p class="text-muted small mb-4">For large organizations</p>
+                        
+                        <div class="mb-4">
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Everything in Pro</span>
+                            </div>
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Unlimited team members</span>
+                            </div>
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Custom integrations</span>
+                            </div>
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>Unlimited history</span>
+                            </div>
+                            <div class="plan-feature">
+                                <i class="fas fa-check-circle"></i>
+                                <span>SLA guarantee</span>
+                            </div>
+                        </div>
+
+                        <a href="{% url 'accounts:register' %}?plan=business" class="btn btn-outline-primary w-100">
+                            Contact Sales
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-center text-muted small mt-4">
+            <i class="fas fa-shield-alt me-2"></i>All plans include a 14-day free trial. No credit card required.
+        </p>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary-light text-primary fw-bold px-3 py-2 mb-3">
+                <i class="fas fa-steps me-2"></i>Simple Process
+            </span>
+            <h2 class="display-5 fw-bold mb-3">How It Works</h2>
+            <p class="lead text-muted mx-auto" style="max-width: 600px;">
+                Get started in minutes with our simple three-step process.
+            </p>
+        </div>
+
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="card h-100 text-center p-3">
-                    <div class="card-body">
-                        <i class="fas fa-lock fa-2x text-primary mb-3"></i>
-                        <h6 class="fw-bold">Secure Authentication</h6>
-                        <p class="small text-muted">Complete user authentication system</p>
+                <div class="text-center">
+                    <div class="bg-primary-light rounded-circle d-inline-flex p-4 mb-4">
+                        <i class="fas fa-user-plus fa-3x text-primary"></i>
                     </div>
+                    <h5 class="fw-bold mb-3">1. Create Account</h5>
+                    <p class="text-muted">Sign up for free and get instant access to your dashboard.</p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card h-100 text-center p-3">
-                    <div class="card-body">
-                        <i class="fas fa-credit-card fa-2x text-primary mb-3"></i>
-                        <h6 class="fw-bold">Subscription Plans</h6>
-                        <p class="small text-muted">Multiple tiers with Stripe integration</p>
+                <div class="text-center">
+                    <div class="bg-primary-light rounded-circle d-inline-flex p-4 mb-4">
+                        <i class="fas fa-credit-card fa-3x text-primary"></i>
                     </div>
+                    <h5 class="fw-bold mb-3">2. Choose Plan</h5>
+                    <p class="text-muted">Select the perfect plan for your needs. Upgrade anytime.</p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card h-100 text-center p-3">
-                    <div class="card-body">
-                        <i class="fas fa-chart-line fa-2x text-primary mb-3"></i>
-                        <h6 class="fw-bold">User Dashboard</h6>
-                        <p class="small text-muted">Personalized dashboard with insights</p>
+                <div class="text-center">
+                    <div class="bg-primary-light rounded-circle d-inline-flex p-4 mb-4">
+                        <i class="fas fa-rocket fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="fw-bold mb-3">3. Start Growing</h5>
+                    <p class="text-muted">Manage your subscriptions and watch your business grow.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary-light text-primary fw-bold px-3 py-2 mb-3">
+                <i class="fas fa-star me-2"></i>Testimonials
+            </span>
+            <h2 class="display-5 fw-bold mb-3">Loved by Thousands</h2>
+            <p class="lead text-muted mx-auto" style="max-width: 600px;">
+                See what our customers say about PremiumHub.
+            </p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Testimonial 1 -->
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">
+                        "PremiumHub transformed how we manage subscriptions. The analytics dashboard alone saves us hours every week."
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                            <span>JD</span>
+                        </div>
+                        <div class="testimonial-info">
+                            <h6>John Doe</h6>
+                            <p>CEO, TechStart</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimonial 2 -->
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">
+                        "The automated billing feature is a game-changer. We've reduced payment failures by 50% since switching."
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                            <span>JS</span>
+                        </div>
+                        <div class="testimonial-info">
+                            <h6>Jane Smith</h6>
+                            <p>Founder, GrowthLabs</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimonial 3 -->
+            <div class="col-md-4">
+                <div class="testimonial-card">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">
+                        "Customer support is exceptional. They helped us migrate from our old system in just one day."
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="testimonial-avatar">
+                            <span>MW</span>
+                        </div>
+                        <div class="testimonial-info">
+                            <h6>Mike Wilson</h6>
+                            <p>CTO, ScaleUp Inc</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- FAQ Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary-light text-primary fw-bold px-3 py-2 mb-3">
+                <i class="fas fa-question-circle me-2"></i>FAQ
+            </span>
+            <h2 class="display-5 fw-bold mb-3">Frequently Asked Questions</h2>
+            <p class="lead text-muted mx-auto" style="max-width: 600px;">
+                Got questions? We've got answers.
+            </p>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-lg p-4">
+                    <!-- FAQ Item 1 -->
+                    <div class="faq-item active" onclick="toggleFAQ(this)">
+                        <div class="faq-question">
+                            <span>Can I change plans later?</span>
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Yes, you can upgrade or downgrade your plan at any time. Changes will be reflected in your next billing cycle.
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 2 -->
+                    <div class="faq-item" onclick="toggleFAQ(this)">
+                        <div class="faq-question">
+                            <span>Is there a free trial?</span>
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Yes! All plans come with a 14-day free trial. No credit card required to start.
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 3 -->
+                    <div class="faq-item" onclick="toggleFAQ(this)">
+                        <div class="faq-question">
+                            <span>What payment methods do you accept?</span>
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div class="faq-answer">
+                            We accept all major credit cards (Visa, Mastercard, American Express) and PayPal. Enterprise plans can also pay by invoice.
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 4 -->
+                    <div class="faq-item" onclick="toggleFAQ(this)">
+                        <div class="faq-question">
+                            <span>Can I cancel anytime?</span>
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Absolutely! You can cancel your subscription at any time from your dashboard. No questions asked.
+                        </div>
+                    </div>
+
+                    <!-- FAQ Item 5 -->
+                    <div class="faq-item" onclick="toggleFAQ(this)">
+                        <div class="faq-question">
+                            <span>Is my data secure?</span>
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Yes, we use enterprise-grade encryption and security measures. Your data is always safe with us.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -58,10 +938,37 @@
 
 <!-- CTA Section -->
 <section class="py-5">
-    <div class="container text-center">
-        <h5 class="fw-bold mb-3">Ready to get started?</h5>
-        <p class="text-muted mb-4">Choose a plan that works for you</p>
-        <a href="{% url 'subscriptions:plans' %}" class="btn btn-primary px-4">View Plans</a>
+    <div class="container">
+        <div class="cta-section">
+            <div class="row justify-content-center text-center">
+                <div class="col-lg-8">
+                    <h2 class="cta-title">Ready to Get Started?</h2>
+                    <p class="cta-text">
+                        Join thousands of businesses already using PremiumHub to manage their subscriptions.
+                    </p>
+                    <div class="d-flex flex-wrap gap-3 justify-content-center">
+                        <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg px-5">
+                            Start Free Trial
+                            <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-lg px-5">
+                            Contact Sales
+                        </a>
+                    </div>
+                    <p class="text-white-50 mt-4 small">
+                        <i class="fas fa-check-circle me-2"></i>No credit card required
+                        <i class="fas fa-check-circle ms-4 me-2"></i>14-day free trial
+                        <i class="fas fa-check-circle ms-4 me-2"></i>Cancel anytime
+                    </p>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
+
+<script>
+    function toggleFAQ(element) {
+        element.classList.toggle('active');
+    }
+</script>
 {% endblock %}

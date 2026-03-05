@@ -12,7 +12,25 @@ from .models import PremiumCategory, PremiumItem, UserDownload
 from subscriptions.models import Subscription
 import os
 
-
+def home_view(request):
+    """Landing page / Home page"""
+    # Get counts for stats
+    total_users = User.objects.count() if 'User' in globals() else 10000
+    active_subscriptions = Subscription.objects.filter(status='active').count() if 'Subscription' in globals() else 5000
+    total_revenue = 124000000  # You can calculate this from actual data
+    
+    # Get some featured content for the landing page
+    featured_categories = PremiumCategory.objects.all()[:4]
+    featured_items = PremiumItem.objects.filter(is_featured=True, is_active=True)[:3]
+    
+    context = {
+        'total_users': total_users,
+        'active_subscriptions': active_subscriptions,
+        'total_revenue': total_revenue,
+        'featured_categories': featured_categories,
+        'featured_items': featured_items,
+    }
+    return render(request, 'core/home.html', context)
 
 def health_check(request):
     """Health check endpoint for Docker/Render"""

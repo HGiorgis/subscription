@@ -1,86 +1,124 @@
 <nav class="navbar navbar-expand-lg">
     <div class="container">
-        <!-- Brand -->
+        <!-- Premium Brand -->
         <a class="navbar-brand" href="{% url 'core:home' %}">
             <i class="fas fa-crown"></i>
-            <span>Premium<span class="text-primary">Hub</span></span>
+            <span>Premium<span style="color: var(--primary);">Hub</span></span>
         </a>
         
-        <!-- Toggler -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <!-- Mobile Toggler -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         
         <!-- Navbar Links -->
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
+            <ul class="navbar-nav ms-auto align-items-lg-center">
+                <!-- Home -->
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'core:home' %}">
+                    <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" 
+                       href="{% url 'core:home' %}">
                         <i class="fas fa-home"></i>
                         <span>Home</span>
                     </a>
                 </li>
                 
+                <!-- Plans -->
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'subscriptions:plans' %}">
+                    <a class="nav-link {% if 'plans' in request.path %}active{% endif %}" 
+                       href="{% url 'subscriptions:plans' %}">
                         <i class="fas fa-tag"></i>
                         <span>Plans</span>
                     </a>
                 </li>
                 
+                <!-- Premium Hub -->
                 <li class="nav-item">
-                    <a class="nav-link" href="{% url 'core:premium_hub' %}">
+                    <a class="nav-link {% if 'premium' in request.path %}active{% endif %}" 
+                       href="{% url 'core:premium_hub' %}">
                         <i class="fas fa-crown"></i>
                         <span>Premium Hub</span>
                     </a>
                 </li>
                 
                 {% if user.is_authenticated %}
+                    <!-- User Dropdown -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-user-circle"></i>
-                            <span>{{ user.username|truncatechars:10 }}</span>
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" 
+                           role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user-circle me-1"></i>
+                            <span>{{ user.get_short_name|default:user.username|truncatechars:10 }}</span>
                         </a>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li>
                                 <a class="dropdown-item" href="{% url 'accounts:dashboard' %}">
-                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                    <i class="fas fa-tachometer-alt"></i>
+                                    Dashboard
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item" href="{% url 'accounts:profile' %}">
-                                    <i class="fas fa-user-edit me-2"></i>Profile
+                                    <i class="fas fa-user-edit"></i>
+                                    Profile Settings
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item" href="{% url 'subscriptions:billing_history' %}">
-                                    <i class="fas fa-history me-2"></i>Billing
+                                    <i class="fas fa-history"></i>
+                                    Billing History
                                 </a>
                             </li>
                             <li>
                                 <a class="dropdown-item" href="{% url 'core:my_downloads' %}">
-                                    <i class="fas fa-download me-2"></i>Downloads
+                                    <i class="fas fa-download"></i>
+                                    My Downloads
                                 </a>
                             </li>
+                            
+                            {% if user.is_staff %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="/admin/">
+                                    <i class="fas fa-shield-alt"></i>
+                                    Admin Panel
+                                </a>
+                            </li>
+                            {% endif %}
+                            
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    Sign Out
                                 </a>
                             </li>
                         </ul>
                     </li>
+                    
+                    <!-- Premium Badge (if user is premium) -->
+                    {% if is_premium %}
+                    <li class="nav-item ms-lg-2">
+                        <span class="nav-link premium-badge">
+                            <i class="fas fa-crown text-warning"></i>
+                            <span class="badge bg-warning text-dark">PRO</span>
+                        </span>
+                    </li>
+                    {% endif %}
                 {% else %}
+                    <!-- Login -->
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'accounts:login' %}">
                             <i class="fas fa-sign-in-alt"></i>
-                            <span>Login</span>
+                            <span>Sign In</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-primary text-white px-3" href="{% url 'accounts:register' %}">
+                    
+                    <!-- Sign Up (Premium Button) -->
+                    <li class="nav-item ms-lg-2">
+                        <a class="nav-link btn btn-primary text-white px-4" href="{% url 'accounts:register' %}">
                             <i class="fas fa-user-plus"></i>
-                            <span>Sign Up</span>
+                            <span>Get Started</span>
                         </a>
                     </li>
                 {% endif %}
@@ -88,3 +126,18 @@
         </div>
     </div>
 </nav>
+
+<!-- Scroll Progress Bar (Optional) -->
+<div class="progress fixed-top" style="height: 3px; z-index: 1001; border-radius: 0;">
+    <div class="progress-bar" role="progressbar" id="scrollProgress" style="width: 0%;"></div>
+</div>
+
+<script>
+    // Scroll progress bar
+    window.addEventListener('scroll', () => {
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (winScroll / height) * 100;
+        document.getElementById('scrollProgress').style.width = scrolled + '%';
+    });
+</script>
