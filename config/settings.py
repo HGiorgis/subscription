@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'https://subscription-ibxp.onrender.com'] 
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'subscription-ibxp.onrender.com'] 
 
 
 
