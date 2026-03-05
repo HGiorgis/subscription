@@ -27,7 +27,7 @@ crispy-bootstrap5==0.7
 # Authentication
 django-allauth==0.57.0
 
-# Task Queue - Use versions compatible with Django 4.2
+# Use versions compatible with Django 4.2
 celery==5.3.6
 redis==5.0.3
 django-celery-beat==2.5.0
