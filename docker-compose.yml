@@ -1,37 +1,100 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: subscription
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+    image: postgres:15-alpine
+    container_name: subscription_db
+    restart: always
     volumes:
       - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB=subscription_db
+      - POSTGRES_USER=subscription_user
+      - POSTGRES_PASSWORD=subscription_pass
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U subscription_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: subscription_redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   web:
     build: .
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+    container_name: subscription_web
+    restart: always
     volumes:
       - .:/app
+      - static_volume:/app/static
+      - media_volume:/app/media
     ports:
       - "8000:8000"
+    environment:
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-default-key-change-in-production}
+      - DATABASE_URL=postgresql://subscription_user:subscription_pass@db:5432/subscription_db
+      - REDIS_URL=redis://redis:6379/0
+      - STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY:-pk_test_placeholder}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_placeholder}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:-whsec_placeholder}
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME:-admin}
+      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL:-admin@example.com}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD:-admin123}
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  celery-worker:
+    build: .
+    container_name: subscription_celery
+    restart: always
+    volumes:
+      - .:/app
+      - media_volume:/app/media
     environment:
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/subscription
-      - DEBUG=True
+      - DEBUG=False
+      - SECRET_KEY=${SECRET_KEY:-django-insecure-default-key-change-in-production}
+      - DATABASE_URL=postgresql://subscription_user:subscription_pass@db:5432/subscription_db
+      - REDIS_URL=redis://redis:6379/0
+      - STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY:-pk_test_placeholder}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:-sk_test_placeholder}
+    depends_on:
+      - db
+      - redis
+      - web
+    command: celery -A config worker --loglevel=info
+
+  nginx:
+    image: nginx:alpine
+    container_name: subscription_nginx
+    restart: always
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - static_volume:/static
+      - media_volume:/media
+    ports:
+      - "80:80"
+    depends_on:
+      - web
 
 volumes:
   postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:

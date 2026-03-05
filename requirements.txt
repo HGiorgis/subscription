@@ -16,3 +16,4 @@ celery
 redis
 django-celery-beat
 whitenoise
+dj_database_url

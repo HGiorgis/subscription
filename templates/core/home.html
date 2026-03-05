@@ -1,53 +1,54 @@
 {% extends 'base.html' %}
 
-{% block title %}Home - Subscription Showcase{% endblock %}
+{% block title %}Home - PremiumHub{% endblock %}
 
 {% block content %}
 <!-- Hero Section -->
-<section class="bg-primary text-white py-5">
-    <div class="container text-center py-5">
-        <h1 class="display-4 fw-bold mb-4">Welcome to Subscription Showcase</h1>
-        <p class="lead mb-4">A complete subscription management system built with Django</p>
+<section class="py-5">
+    <div class="container text-center py-4">
+        <h1 class="display-4 fw-bold mb-4">Simple Subscription Management</h1>
+        <p class="lead text-muted mb-4">A clean and modern platform for managing your premium subscriptions</p>
+        
         {% if not user.is_authenticated %}
             <div>
-                <a href="{% url 'accounts:register' %}" class="btn btn-light btn-lg mx-2">Get Started</a>
-                <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg mx-2">Login</a>
+                <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg px-4 me-2">Get Started</a>
+                <a href="{% url 'accounts:login' %}" class="btn btn-outline-primary btn-lg px-4">Login</a>
             </div>
         {% else %}
-            <a href="{% url 'accounts:dashboard' %}" class="btn btn-light btn-lg">Go to Dashboard</a>
+            <a href="{% url 'accounts:dashboard' %}" class="btn btn-primary btn-lg px-4">Go to Dashboard</a>
         {% endif %}
     </div>
 </section>
 
 <!-- Features Section -->
-<section class="py-5">
+<section class="py-5 bg-light">
     <div class="container">
-        <h2 class="text-center mb-5">Key Features</h2>
+        <h5 class="text-center fw-bold mb-4">Key Features</h5>
         <div class="row g-4">
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-user-lock fa-3x text-primary mb-3"></i>
-                        <h5>Secure Authentication</h5>
-                        <p class="text-muted">Complete user authentication system with email verification</p>
+                <div class="card h-100 text-center p-3">
+                    <div class="card-body">
+                        <i class="fas fa-lock fa-2x text-primary mb-3"></i>
+                        <h6 class="fw-bold">Secure Authentication</h6>
+                        <p class="small text-muted">Complete user authentication system</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-credit-card fa-3x text-primary mb-3"></i>
-                        <h5>Subscription Plans</h5>
-                        <p class="text-muted">Multiple subscription tiers with Stripe integration</p>
+                <div class="card h-100 text-center p-3">
+                    <div class="card-body">
+                        <i class="fas fa-credit-card fa-2x text-primary mb-3"></i>
+                        <h6 class="fw-bold">Subscription Plans</h6>
+                        <p class="small text-muted">Multiple tiers with Stripe integration</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="card h-100 border-0 shadow-sm">
-                    <div class="card-body text-center p-4">
-                        <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
-                        <h5>User Dashboard</h5>
-                        <p class="text-muted">Personalized dashboard with subscription management</p>
+                <div class="card h-100 text-center p-3">
+                    <div class="card-body">
+                        <i class="fas fa-chart-line fa-2x text-primary mb-3"></i>
+                        <h6 class="fw-bold">User Dashboard</h6>
+                        <p class="small text-muted">Personalized dashboard with insights</p>
                     </div>
                 </div>
             </div>
@@ -55,12 +56,12 @@
     </div>
 </section>
 
-<!-- Call to Action -->
-<section class="bg-light py-5">
+<!-- CTA Section -->
+<section class="py-5">
     <div class="container text-center">
-        <h2 class="mb-4">Ready to get started?</h2>
-        <p class="lead mb-4">Create your account today and explore our subscription plans</p>
-        <a href="{% url 'subscriptions:plans' %}" class="btn btn-primary btn-lg">View Plans</a>
+        <h5 class="fw-bold mb-3">Ready to get started?</h5>
+        <p class="text-muted mb-4">Choose a plan that works for you</p>
+        <a href="{% url 'subscriptions:plans' %}" class="btn btn-primary px-4">View Plans</a>
     </div>
 </section>
 {% endblock %}

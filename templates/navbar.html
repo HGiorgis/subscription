@@ -1,12 +1,90 @@
-<li class="nav-item">
-    <a class="nav-link" href="{% url 'core:premium_hub' %}">
-        <i class="fas fa-crown"></i> Premium Hub
-    </a>
-</li>
-{% if user.is_authenticated %}
-    <li class="nav-item">
-        <a class="nav-link" href="{% url 'core:my_downloads' %}">
-            <i class="fas fa-download"></i> My Downloads
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <!-- Brand -->
+        <a class="navbar-brand" href="{% url 'core:home' %}">
+            <i class="fas fa-crown"></i>
+            <span>Premium<span class="text-primary">Hub</span></span>
         </a>
-    </li>
-{% endif %}
+        
+        <!-- Toggler -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <!-- Navbar Links -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:home' %}">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'subscriptions:plans' %}">
+                        <i class="fas fa-tag"></i>
+                        <span>Plans</span>
+                    </a>
+                </li>
+                
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'core:premium_hub' %}">
+                        <i class="fas fa-crown"></i>
+                        <span>Premium Hub</span>
+                    </a>
+                </li>
+                
+                {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle"></i>
+                            <span>{{ user.username|truncatechars:10 }}</span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'accounts:dashboard' %}">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                                    <i class="fas fa-user-edit me-2"></i>Profile
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'subscriptions:billing_history' %}">
+                                    <i class="fas fa-history me-2"></i>Billing
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'core:my_downloads' %}">
+                                    <i class="fas fa-download me-2"></i>Downloads
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'accounts:login' %}">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>Login</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-primary text-white px-3" href="{% url 'accounts:register' %}">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Sign Up</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

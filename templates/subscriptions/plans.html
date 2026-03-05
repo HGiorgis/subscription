@@ -1,97 +1,82 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Subscription Plans - Subscription Showcase{% endblock %}
+{% block title %}Subscription Plans - PremiumHub{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container py-4">
     <!-- Header -->
     <div class="text-center mb-5">
-        <h1 class="display-4 fw-bold">Choose Your Plan</h1>
-        <p class="lead text-muted">Select the perfect plan for your needs. Upgrade or cancel anytime.</p>
+        <h4 class="fw-bold mb-2">Choose Your Plan</h4>
+        <p class="text-muted">Simple, transparent pricing for everyone</p>
     </div>
 
     <!-- Plans Grid -->
     <div class="row g-4 justify-content-center">
         {% for plan in plans %}
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 {% if plan.is_popular %}border-primary shadow{% else %}shadow-sm{% endif %}">
-                
+            <div class="card h-100 {% if plan.is_popular %}border-primary{% endif %}">
                 {% if plan.is_popular %}
                 <div class="card-header bg-primary text-white text-center py-2">
-                    <span class="fw-bold"><i class="fas fa-star me-1"></i> MOST POPULAR</span>
+                    <small class="fw-bold">MOST POPULAR</small>
                 </div>
                 {% endif %}
-                
+
                 <div class="card-body p-4">
-                    <h3 class="text-center mb-3">{{ plan.name }}</h3>
+                    <h5 class="fw-bold text-center mb-3">{{ plan.name }}</h5>
                     
                     <div class="text-center mb-4">
                         {% if plan.price == 0 %}
-                            <span class="display-4 fw-bold">Free</span>
+                            <span class="display-6 fw-bold">Free</span>
                         {% else %}
-                            <span class="display-4 fw-bold">${{ plan.price }}</span>
+                            <span class="display-6 fw-bold">${{ plan.price }}</span>
                             <span class="text-muted">/month</span>
                         {% endif %}
                     </div>
-                    
-                    <p class="text-muted text-center mb-4">{{ plan.description }}</p>
-                    
+
+                    <p class="text-muted text-center small mb-4">{{ plan.description }}</p>
+
                     <!-- Features -->
                     <ul class="list-unstyled mb-4">
                         {% for feature, description in plan.features.items %}
-                        <li class="mb-3">
-                            <div class="d-flex">
-                                <i class="fas fa-check-circle text-success me-2 mt-1"></i>
-                                <div>
-                                    <strong>{{ feature|title }}:</strong>
-                                    <span class="text-muted">{{ description }}</span>
-                                </div>
-                            </div>
+                        <li class="mb-2 small">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <strong>{{ feature|title }}:</strong>
+                            <span class="text-muted">{{ description }}</span>
                         </li>
                         {% empty %}
-                        <li class="text-muted text-center">No features listed</li>
+                        <li class="text-muted text-center small">No features listed</li>
                         {% endfor %}
                     </ul>
-                    
-                    <!-- Action Button -->
+
+                    <!-- Action -->
                     <div class="d-grid">
                         {% if user.is_authenticated %}
                             {% if current_subscription and current_subscription.plan.id == plan.id %}
                                 <button class="btn btn-outline-success" disabled>
-                                    <i class="fas fa-check-circle"></i> Current Plan
+                                    <i class="fas fa-check me-2"></i>Current Plan
                                 </button>
                             {% else %}
-                                <a href="{% url 'subscriptions:checkout' plan.id %}" 
-                                   class="btn {% if plan.is_popular %}btn-primary{% else %}btn-outline-primary{% endif %} btn-lg">
+                                <a href="{% url 'subscriptions:checkout' plan.id %}"
+                                   class="btn {% if plan.is_popular %}btn-primary{% else %}btn-outline-primary{% endif %}">
                                     Choose {{ plan.name }}
-                                    <i class="fas fa-arrow-right ms-1"></i>
                                 </a>
                             {% endif %}
                         {% else %}
-                            <a href="{% url 'accounts:login' %}?next={% url 'subscriptions:checkout' plan.id %}" 
-                               class="btn {% if plan.is_popular %}btn-primary{% else %}btn-outline-primary{% endif %} btn-lg">
+                            <a href="{% url 'accounts:login' %}?next={% url 'subscriptions:checkout' plan.id %}"       
+                               class="btn {% if plan.is_popular %}btn-primary{% else %}btn-outline-primary{% endif %}">
                                 Login to Subscribe
-                                <i class="fas fa-sign-in-alt ms-1"></i>
                             </a>
                         {% endif %}
                     </div>
-                </div>
-                
-                <!-- Plan Footer -->
-                <div class="card-footer bg-transparent border-0 text-center pb-4">
-                    <small class="text-muted">
-                        <i class="fas fa-sync-alt me-1"></i> Cancel anytime • 
-                        <i class="fas fa-shield-alt me-1"></i> Secure payment
-                    </small>
                 </div>
             </div>
         </div>
         {% empty %}
         <div class="col-12 text-center py-5">
-            <i class="fas fa-exclamation-circle fa-4x text-muted mb-3"></i>
-            <h3>No Plans Available</h3>
-            <p class="text-muted">Please check back later for our subscription plans.</p>
+            <i class="fas fa-exclamation-circle fa-3x text-muted mb-3"></i>
+            <h6>No Plans Available</h6>
+            <p class="small text-muted">Please check back later.</p>
         </div>
         {% endfor %}
     </div>

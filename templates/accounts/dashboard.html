@@ -1,381 +1,200 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dashboard - Subscription Showcase{% endblock %}
+{% block title %}Dashboard - PremiumHub{% endblock %}
 
 {% block content %}
-<div class="container py-5">
-  <div class="row">
-    <!-- Sidebar -->
-    <div class="col-md-4 col-lg-3 mb-4">
-      <div class="card shadow">
-        <div class="card-body text-center">
-          {% if profile.profile_picture %}
-          <img
-            src="{{ profile.profile_picture.url }}"
-            alt="Profile"
-            class="rounded-circle img-fluid mb-3"
-            style="width: 120px; height: 120px; object-fit: cover"
-          />
-          {% else %}
-          <div
-            class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-            style="width: 120px; height: 120px"
-          >
-            <i class="fas fa-user fa-4x text-white"></i>
-          </div>
-          {% endif %}
-          <h4>{{ user.get_full_name|default:user.username }}</h4>
-          <p class="text-muted">{{ user.email }}</p>
-
-          <hr />
-
-          <div class="text-start">
-            <p><i class="fas fa-envelope me-2"></i> {{ user.email }}</p>
-            {% if profile.phone %}
-            <p><i class="fas fa-phone me-2"></i> {{ profile.phone }}</p>
-            {% endif %}
-            {% if profile.address %}
-            <p><i class="fas fa-map-marker-alt me-2"></i> {{ profile.address|truncatechars:30 }}</p>
-            {% endif %}
-          </div>
-
-          <a
-            href="{% url 'accounts:profile' %}"
-            class="btn btn-outline-primary w-100 mt-2"
-          >
-            <i class="fas fa-edit"></i> Edit Profile
-          </a>
+<div class="container py-4">
+    <!-- Welcome Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-1">Welcome back, {{ user.get_full_name|default:user.username }}!</h4>
+            <p class="text-muted mb-0">Here's what's happening with your account</p>
         </div>
-      </div>
+        {% if not is_premium %}
+        <a href="{% url 'subscriptions:plans' %}" class="btn btn-primary">
+            <i class="fas fa-crown me-2"></i>Upgrade to Premium
+        </a>
+        {% endif %}
     </div>
 
-    <!-- Main Content -->
-    <div class="col-md-8 col-lg-9">
-      <!-- Subscription Status Card -->
-      <div class="card shadow mb-4">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-            <div>
-              <h5 class="card-title">Subscription Status</h5>
-              {% if is_premium %}
-              <span class="badge bg-success fs-6 p-2">
-                <i class="fas fa-crown me-1"></i> Premium Member
-              </span>
-              {% if profile.subscription_end_date %}
-              <p class="mt-2 mb-0 text-muted">
-                <i class="fas fa-calendar-alt me-1"></i>
-                Valid until: <strong>{{ profile.subscription_end_date|date:"F d, Y" }}</strong>
-                ({{ profile.subscription_end_date|timeuntil }} remaining)
-              </p>
-              {% endif %}
-              {% else %}
-              <span class="badge bg-secondary fs-6 p-2">
-                <i class="fas fa-user me-1"></i> Free Member
-              </span>
-              <p class="mt-2 text-muted">
-                <i class="fas fa-info-circle me-1"></i>
-                Upgrade to Premium to unlock all features
-              </p>
-              {% endif %}
+    <div class="row">
+        <!-- Profile Sidebar -->
+        <div class="col-lg-4 mb-4">
+            <div class="card">
+                <div class="card-body text-center">
+                    <!-- Profile Picture -->
+                    <div class="mb-3">
+                        {% if user.profile.profile_picture %}
+                            <img src="{{ user.profile.profile_picture.url }}" 
+                                 alt="{{ user.username }}" 
+                                 class="profile-avatar rounded-circle"
+                                 width="100" height="100">
+                        {% else %}
+                            <div class="profile-avatar-placeholder rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                                 style="width: 100px; height: 100px;">
+                                <i class="fas fa-user fa-3x text-primary"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h5 class="fw-bold mb-1">{{ user.get_full_name|default:user.username }}</h5>
+                    <p class="text-muted small mb-3">{{ user.email }}</p>
+                    
+                    <!-- Status Badges -->
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <span class="badge bg-primary">
+                            <i class="fas fa-user me-1"></i>
+                            {{ user.profile.subscription_status|default:"Free" }}
+                        </span>
+                        {% if user.profile.phone %}
+                        <span class="badge bg-secondary">
+                            <i class="fas fa-phone me-1"></i>{{ user.profile.phone }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Quick Stats -->
+                    <div class="row g-2 py-2">
+                        <div class="col-4">
+                            <div class="p-2">
+                                <div class="fw-bold">{{ user.date_joined|date:"M d" }}</div>
+                                <small class="text-muted">Joined</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2">
+                                <div class="fw-bold">{{ downloads_count|default:"0" }}</div>
+                                <small class="text-muted">Downloads</small>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <div class="p-2">
+                                <div class="fw-bold">{{ days_remaining|default:"-" }}</div>
+                                <small class="text-muted">Days Left</small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-edit me-2"></i>Edit Profile
+                    </a>
+                </div>
             </div>
-            <a href="{% url 'subscriptions:plans' %}" class="btn btn-primary">
-              {% if is_premium %} 
-                <i class="fas fa-cog me-1"></i> Manage Subscription 
-              {% else %} 
-                <i class="fas fa-arrow-up me-1"></i> Upgrade Now 
-              {% endif %}
-            </a>
-          </div>
         </div>
-      </div>
-
-      <!-- Quick Stats -->
-      <div class="row g-4 mb-4">
-        <div class="col-sm-6 col-lg-4">
-          <div class="card shadow h-100">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
-                  <i class="fas fa-calendar-check fa-3x text-primary"></i>
+        
+        <!-- Main Content -->
+        <div class="col-lg-8">
+            <!-- Subscription Status -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="fw-bold mb-1">Subscription Status</h6>
+                            {% if is_premium %}
+                                <span class="badge bg-success">Premium Active</span>
+                                {% if profile.subscription_end_date %}
+                                <p class="small text-muted mt-2 mb-0">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    Valid until {{ profile.subscription_end_date|date:"M d, Y" }}
+                                </p>
+                                {% endif %}
+                            {% else %}
+                                <span class="badge bg-secondary">Free Plan</span>
+                                <p class="small text-muted mt-2 mb-0">
+                                    Upgrade to unlock premium features
+                                </p>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'subscriptions:plans' %}" class="btn btn-outline-primary">
+                            {% if is_premium %}Manage{% else %}View Plans{% endif %}
+                        </a>
+                    </div>
                 </div>
-                <div class="flex-grow-1 ms-3">
-                  <h6 class="mb-1">Member Since</h6>
-                  <h5>{{ user.date_joined|date:"M d, Y" }}</h5>
-                  <small class="text-muted">{{ user.date_joined|timesince }} ago</small>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-sm-6 col-lg-4">
-          <div class="card shadow h-100">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
-                  <i class="fas fa-credit-card fa-3x text-success"></i>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <h6 class="mb-1">Last Payment</h6>
-                  {% with last_payment=user.payments.first %}
-                    {% if last_payment %}
-                      <h5>${{ last_payment.amount }}</h5>
-                      <small class="text-muted">{{ last_payment.created_at|date:"M d, Y" }}</small>
-                    {% else %}
-                      <h5>No payments</h5>
-                      <small class="text-muted">Free plan or first month</small>
-                    {% endif %}
-                  {% endwith %}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-sm-6 col-lg-4">
-          <div class="card shadow h-100">
-            <div class="card-body">
-              <div class="d-flex align-items-center">
-                <div class="flex-shrink-0">
-                  <i class="fas fa-shield-alt fa-3x text-info"></i>
-                </div>
-                <div class="flex-grow-1 ms-3">
-                  <h6 class="mb-1">Account Status</h6>
-                  {% if is_premium %}
-                    <h5 class="text-success">Premium</h5>
-                    <small class="text-muted">Active subscription</small>
-                  {% else %}
-                    <h5 class="text-secondary">Free</h5>
-                    <small class="text-muted">No active subscription</small>
-                  {% endif %}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Current Plan Details (if premium) -->
-      {% if is_premium %}
-      <div class="card shadow mb-4">
-        <div class="card-header bg-white">
-          <h5 class="mb-0"><i class="fas fa-crown text-warning me-2"></i>Your Premium Plan</h5>
-        </div>
-        <div class="card-body">
-          {% with subscription=user.subscriptions.first %}
-            {% if subscription and subscription.plan %}
-            <div class="row">
-              <div class="col-md-4 mb-3">
-                <div class="bg-light p-3 rounded text-center">
-                  <h6 class="text-muted mb-2">Plan</h6>
-                  <h4 class="mb-0">{{ subscription.plan.name }}</h4>
-                </div>
-              </div>
-              <div class="col-md-4 mb-3">
-                <div class="bg-light p-3 rounded text-center">
-                  <h6 class="text-muted mb-2">Price</h6>
-                  <h4 class="mb-0 text-primary">${{ subscription.plan.price }}/mo</h4>
-                </div>
-              </div>
-              <div class="col-md-4 mb-3">
-                <div class="bg-light p-3 rounded text-center">
-                  <h6 class="text-muted mb-2">Status</h6>
-                  {% if subscription.cancel_at_period_end %}
-                    <h4 class="mb-0 text-warning">Cancelling</h4>
-                    <small>Ends {{ subscription.end_date|date:"M d" }}</small>
-                  {% else %}
-                    <h4 class="mb-0 text-success">Active</h4>
-                    <small>Auto-renews</small>
-                  {% endif %}
-                </div>
-              </div>
             </div>
             
-            <!-- Plan Features -->
-            <div class="mt-3">
-              <h6 class="mb-3">Plan Features:</h6>
-              <div class="row">
-                {% for feature, description in subscription.plan.features.items %}
-                <div class="col-md-6 mb-2">
-                  <div class="d-flex">
-                    <i class="fas fa-check-circle text-success me-2 mt-1"></i>
-                    <div>
-                      <strong>{{ feature|title }}:</strong>
-                      <span class="text-muted small d-block">{{ description }}</span>
+            <!-- Stats Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-sm-4">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center">
+                            <div class="stats-icon me-3">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Member Since</small>
+                                <span class="fw-bold">{{ user.date_joined|date:"M Y" }}</span>
+                            </div>
+                        </div>
                     </div>
-                  </div>
                 </div>
-                {% endfor %}
-              </div>
+                
+                <div class="col-sm-4">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center">
+                            <div class="stats-icon me-3">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Last Payment</small>
+                                {% with last_payment=user.payments.first %}
+                                    {% if last_payment %}
+                                        <span class="fw-bold">${{ last_payment.amount }}</span>
+                                        <small class="text-muted d-block">{{ last_payment.created_at|date:"M d" }}</small>
+                                    {% else %}
+                                        <span class="fw-bold">No payments</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-sm-4">
+                    <div class="stats-card">
+                        <div class="d-flex align-items-center">
+                            <div class="stats-icon me-3">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div>
+                                <small class="text-muted d-block">Account</small>
+                                <span class="fw-bold text-success">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            {% endif %}
-          {% endwith %}
+            
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-clock me-2 text-primary"></i>
+                    Recent Activity
+                </div>
+                <div class="card-body">
+                    {% if recent_activities %}
+                        {% for activity in recent_activities %}
+                        <div class="activity-item d-flex align-items-center mb-2">
+                            <div class="activity-icon me-3">
+                                <i class="fas fa-{{ activity.icon }}"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <p class="mb-0">{{ activity.description }}</p>
+                                <small class="text-muted">{{ activity.timestamp|timesince }} ago</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <p class="text-muted mb-0">No recent activity</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
         </div>
-      </div>
-      {% endif %}
-
-      <!-- Premium Features Showcase -->
-      <div class="card shadow">
-        <div class="card-header bg-white">
-          <h5 class="mb-0">
-            <i class="fas fa-star text-warning me-2"></i>
-            {% if is_premium %}Your Premium Benefits{% else %}Premium Features{% endif %}
-          </h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6 mb-3">
-              <div class="d-flex">
-                <i class="fas fa-infinity fa-2x text-primary me-3"></i>
-                <div>
-                  <h6>Unlimited Access</h6>
-                  <p class="text-muted small">
-                    Access all premium content without restrictions
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <div class="d-flex">
-                <i class="fas fa-headset fa-2x text-primary me-3"></i>
-                <div>
-                  <h6>Priority Support</h6>
-                  <p class="text-muted small">
-                    Get 24/7 priority customer support
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <div class="d-flex">
-                <i class="fas fa-chart-line fa-2x text-primary me-3"></i>
-                <div>
-                  <h6>Advanced Analytics</h6>
-                  <p class="text-muted small">
-                    Access to detailed reports and analytics
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <div class="d-flex">
-                <i class="fas fa-download fa-2x text-primary me-3"></i>
-                <div>
-                  <h6>Export Data</h6>
-                  <p class="text-muted small">
-                    Export your data in multiple formats
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <div class="d-flex">
-                <i class="fas fa-cloud fa-2x text-primary me-3"></i>
-                <div>
-                  <h6>Cloud Storage</h6>
-                  <p class="text-muted small">
-                    Secure cloud storage for your files
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div class="col-md-6 mb-3">
-              <div class="d-flex">
-                <i class="fas fa-shield-alt fa-2x text-primary me-3"></i>
-                <div>
-                  <h6>Enhanced Security</h6>
-                  <p class="text-muted small">
-                    Additional security features and SSL
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {% if not is_premium %}
-          <div class="alert alert-info mt-3">
-            <div class="d-flex align-items-center">
-              <i class="fas fa-info-circle fa-2x me-3"></i>
-              <div>
-                <h6 class="alert-heading mb-1">You're on the Free plan</h6>
-                <p class="mb-0">
-                  Upgrade to Premium to unlock all these features and more!
-                  <a href="{% url 'subscriptions:plans' %}" class="alert-link fw-bold">View Plans →</a>
-                </p>
-              </div>
-            </div>
-          </div>
-          {% else %}
-          <div class="alert alert-success mt-3">
-            <div class="d-flex align-items-center">
-              <i class="fas fa-check-circle fa-2x me-3"></i>
-              <div>
-                <h6 class="alert-heading mb-1">Thank you for being a Premium member!</h6>
-                <p class="mb-0">
-                  You have access to all premium features. 
-                  <a href="{% url 'subscriptions:manage' %}" class="alert-link">Manage your subscription →</a>
-                </p>
-              </div>
-            </div>
-          </div>
-          {% endif %}
-        </div>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="row mt-4">
-        <div class="col-12">
-          <div class="card shadow">
-            <div class="card-body">
-              <h6 class="mb-3">Quick Actions</h6>
-              <div class="d-flex flex-wrap gap-2">
-                <a href="{% url 'subscriptions:billing_history' %}" class="btn btn-outline-primary">
-                  <i class="fas fa-history me-1"></i> Billing History
-                </a>
-                {% if is_premium %}
-                <a href="{% url 'subscriptions:manage' %}" class="btn btn-outline-warning">
-                  <i class="fas fa-cog me-1"></i> Manage Subscription
-                </a>
-                {% else %}
-                <a href="{% url 'subscriptions:plans' %}" class="btn btn-outline-success">
-                  <i class="fas fa-crown me-1"></i> View Plans
-                </a>
-                {% endif %}
-                <a href="{% url 'accounts:profile' %}" class="btn btn-outline-secondary">
-                  <i class="fas fa-user-edit me-1"></i> Edit Profile
-                </a>
-                <a href="#" class="btn btn-outline-info">
-                  <i class="fas fa-headset me-1"></i> Contact Support
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
 </div>
-
-<!-- Add this CSS for better styling -->
-<style>
-  .badge {
-    font-size: 0.9rem;
-    padding: 0.5rem 1rem;
-  }
-  .card {
-    transition: transform 0.2s;
-    border: none;
-  }
-  .card:hover {
-    transform: translateY(-2px);
-  }
-  .btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-info {
-    border-width: 2px;
-    font-weight: 500;
-  }
-  .bg-light {
-    background-color: #f8f9fa !important;
-  }
-</style>
 {% endblock %}

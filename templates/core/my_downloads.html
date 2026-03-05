@@ -1,66 +1,79 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}My Downloads - Subscription Showcase{% endblock %}
+{% block title %}My Downloads - PremiumHub{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container py-4">
     <div class="row">
         <div class="col-12">
-            <h2 class="mb-4">
-                <i class="fas fa-download text-primary me-2"></i>
-                My Downloads
-            </h2>
-            
-            <div class="card shadow">
-                <div class="card-body">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold mb-0">
+                    <i class="fas fa-download text-primary me-2"></i>
+                    My Downloads
+                </h4>
+                <a href="{% url 'core:premium_hub' %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Hub
+                </a>
+            </div>
+
+            <!-- Downloads List -->
+            <div class="card">
+                <div class="card-body p-0">
                     {% if downloads %}
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Resource</th>
-                                    <th>Category</th>
-                                    <th>Downloaded</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for download in downloads %}
-                                <tr>
-                                    <td>
-                                        <strong>{{ download.item.title }}</strong>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{{ download.item.category.color }}">
-                                            {{ download.item.category.name }}
-                                        </span>
-                                    </td>
-                                    <td>{{ download.downloaded_at|date:"M d, Y H:i" }}</td>
-                                    <td>
-                                        <a href="{% url 'core:premium_item_detail' download.item.category.slug download.item.slug %}" class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-eye"></i> View
-                                        </a>
-                                        {% if download.item.file_attachment %}
-                                        <a href="{% url 'core:download_item' download.item.id %}" class="btn btn-sm btn-outline-success">
-                                            <i class="fas fa-download"></i> Again
-                                        </a>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Resource</th>
+                                        <th>Category</th>
+                                        <th>Downloaded</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for download in downloads %}
+                                    <tr>
+                                        <td>
+                                            <div class="fw-medium">{{ download.item.title }}</div>
+                                            <small class="text-muted">{{ download.item.description|truncatechars:40 }}</small>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark">
+                                                {{ download.item.category.name }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div>{{ download.downloaded_at|date:"M d, Y" }}</div>
+                                            <small class="text-muted">{{ download.downloaded_at|time }}</small>
+                                        </td>
+                                        <td class="text-end">
+                                            <a href="{% url 'core:premium_item_detail' download.item.category.slug download.item.slug %}" 
+                                               class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if download.item.file_attachment %}
+                                            <a href="{% url 'core:download_item' download.item.id %}" 
+                                               class="btn btn-outline-success btn-sm">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     {% else %}
-                    <div class="text-center py-5">
-                        <i class="fas fa-download fa-4x text-muted mb-3"></i>
-                        <h4>No Downloads Yet</h4>
-                        <p class="text-muted">You haven't downloaded any resources yet.</p>
-                        <a href="{% url 'core:premium_hub' %}" class="btn btn-primary">
-                            Browse Resources
-                        </a>
-                    </div>
+                        <div class="text-center py-5">
+                            <i class="fas fa-download fa-3x text-muted mb-3"></i>
+                            <h6 class="fw-bold mb-2">No Downloads Yet</h6>
+                            <p class="small text-muted mb-3">You haven't downloaded any resources yet.</p>
+                            <a href="{% url 'core:premium_hub' %}" class="btn btn-primary btn-sm">
+                                Browse Resources
+                            </a>
+                        </div>
                     {% endif %}
                 </div>
             </div>

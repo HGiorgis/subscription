@@ -3,10 +3,42 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from .models import UserProgress, PremiumItem
 from django.contrib import messages
+from django.db import connections
+from django.db.utils import OperationalError
+import redis
+from django.conf import settings
 from django.http import HttpResponse
 from .models import PremiumCategory, PremiumItem, UserDownload
 from subscriptions.models import Subscription
 import os
+
+
+
+def health_check(request):
+    """Health check endpoint for Docker/Render"""
+    status = {
+        'status': 'healthy',
+        'database': 'ok',
+        'redis': 'ok'
+    }
+    
+    # Check database
+    try:
+        connections['default'].cursor().execute('SELECT 1')
+    except OperationalError:
+        status['database'] = 'error'
+        status['status'] = 'unhealthy'
+    
+    # Check Redis
+    try:
+        redis_client = redis.from_url(settings.REDIS_URL)
+        redis_client.ping()
+    except:
+        status['redis'] = 'error'
+        status['status'] = 'unhealthy'
+    
+    http_status = 200 if status['status'] == 'healthy' else 500
+    return JsonResponse(status, status=http_status)
 
 def premium_hub_view(request):
     """Main premium resources hub"""

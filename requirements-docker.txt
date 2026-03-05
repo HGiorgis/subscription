@@ -1,0 +1,33 @@
+# Core Django - Use latest stable that works with all packages
+Django==4.2.16  # LTS version that works with all packages
+djangorestframework==3.15.2
+gunicorn==21.2.0
+whitenoise==6.6.0
+
+# Database
+psycopg2-binary==2.9.9
+
+# Environment & Config
+python-decouple==3.8
+python-dotenv==1.0.0
+
+# Media & Files
+pillow==10.3.0
+
+# CORS
+django-cors-headers==4.3.1
+
+# Stripe Integration
+stripe==7.8.0
+
+# Forms & UI
+django-crispy-forms==2.1
+crispy-bootstrap5==0.7
+
+# Authentication
+django-allauth==0.57.0
+
+# Task Queue - Use versions compatible with Django 4.2
+celery==5.3.6
+redis==5.0.3
+django-celery-beat==2.5.0
