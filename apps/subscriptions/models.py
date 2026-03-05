@@ -86,7 +86,6 @@ class Subscription(models.Model):
             delta = self.end_date - timezone.now()
             return max(delta.days, 0)
         return 0
-
 class Payment(models.Model):
     """Payment history"""
     STATUS_CHOICES = (
@@ -99,9 +98,9 @@ class Payment(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='payments')
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True, related_name='payments')
     
-    # Stripe fields
-    stripe_payment_intent_id = models.CharField(max_length=100, unique=True)
-    stripe_invoice_id = models.CharField(max_length=100, blank=True)
+    # Stripe fields - MAKE THESE OPTIONAL
+    stripe_payment_intent_id = models.CharField(max_length=100, blank=True, null=True)  # Added null=True
+    stripe_invoice_id = models.CharField(max_length=100, blank=True, null=True)  # Added null=True
     
     # Payment details
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -109,8 +108,8 @@ class Payment(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     
     # Invoice
-    invoice_url = models.URLField(blank=True)
-    invoice_pdf = models.URLField(blank=True)
+    invoice_url = models.URLField(blank=True, null=True)  # Added null=True
+    invoice_pdf = models.URLField(blank=True, null=True)  # Added null=True
     
     description = models.CharField(max_length=255, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

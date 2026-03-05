@@ -117,6 +117,7 @@ def checkout_view(request, plan_id):
         messages.error(request, f"Error: {str(e)}")
         return redirect('subscriptions:plans')
 
+
 def activate_free_plan(request, plan):
     """Activate free plan"""
     # Create subscription
