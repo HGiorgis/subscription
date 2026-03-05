@@ -18,7 +18,7 @@ pillow==10.3.0
 django-cors-headers==4.3.1
 
 # Stripe Integration
-stripe==7.8.0
+stripe
 
 # Forms & UI
 django-crispy-forms==2.1

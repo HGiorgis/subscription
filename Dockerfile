@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y \
 COPY requirements-docker.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements-docker.txt
+RUN pip install --upgrade stripe
 
 # Copy project
 COPY . .
