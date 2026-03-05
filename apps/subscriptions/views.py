@@ -270,7 +270,6 @@ def invoice_view(request, payment_id):
     else:
         messages.info(request, "Invoice PDF is not available yet.")
         return redirect('subscriptions:billing_history')
-
 @csrf_exempt
 def stripe_webhook_view(request):
     """Handle Stripe webhooks"""
@@ -278,67 +277,68 @@ def stripe_webhook_view(request):
     sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
     webhook_secret = settings.STRIPE_WEBHOOK_SECRET
     
+    print(f"📨 Webhook received at {request.build_absolute_uri()}")
+    print(f"🔍 Signature header exists: {bool(sig_header)}")
+    print(f"🔑 Webhook secret exists: {bool(webhook_secret)}")
+    
     if not webhook_secret:
-        return HttpResponse(status=400)
+        print("❌ Webhook secret not configured!")
+        return HttpResponse("Webhook secret not configured", status=500)
     
     try:
+        # Verify the webhook signature
         event = stripe.Webhook.construct_event(
             payload, sig_header, webhook_secret
         )
-    except ValueError:
-        return HttpResponse(status=400)
-    except stripe.error.SignatureVerificationError:
-        return HttpResponse(status=400)
-    
-    # Handle checkout.session.completed
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
+        print(f"✅ Webhook verified: {event['type']}")
         
-        try:
-            # Get user and plan from metadata
-            user_id = session['metadata']['user_id']
-            plan_id = session['metadata']['plan_id']
-            
-            from django.contrib.auth import get_user_model
-            User = get_user_model()
-            user = User.objects.get(id=user_id)
-            plan = Plan.objects.get(id=plan_id)
-            
-            # Check if subscription already exists
-            if not Subscription.objects.filter(user=user, status='active').exists():
-                # Calculate end date
-                end_date = timezone.now() + timedelta(days=plan.duration_days)
-                
-                # Create subscription
-                subscription = Subscription.objects.create(
-                    user=user,
-                    plan=plan,
-                    stripe_subscription_id=session['subscription'],
-                    stripe_customer_id=session['customer'],
-                    status='active',
-                    start_date=timezone.now(),
-                    end_date=end_date
-                )
-                
-                # Update user profile
-                user.profile.subscription_status = 'premium'
-                user.profile.stripe_subscription_id = session['subscription']
-                user.profile.subscription_end_date = end_date
-                user.profile.save()
-                
-                # Create payment
-                Payment.objects.create(
-                    user=user,
-                    subscription=subscription,
-                    stripe_payment_intent_id=session.get('payment_intent', ''),
-                    amount=plan.price,
-                    status='succeeded',
-                    description=f"Subscription to {plan.name} plan"
-                )
-                
-                print(f"✅ Webhook: Created subscription for user {user.username}")
-                
-        except Exception as e:
-            print(f"❌ Webhook error: {e}")
+    except ValueError as e:
+        print(f"❌ Invalid payload: {e}")
+        return HttpResponse(f"Invalid payload: {e}", status=400)
+    except stripe.error.SignatureVerificationError as e:
+        print(f"❌ Invalid signature: {e}")
+        return HttpResponse(f"Invalid signature: {e}", status=400)
     
-    return HttpResponse(status=200)
+    # Handle specific event types
+    event_type = event['type']
+    event_data = event['data']['object']
+    
+    print(f"🔄 Processing event: {event_type}")
+    
+    if event_type == 'checkout.session.completed':
+        # Handle successful checkout
+        session = event_data
+        print(f"💰 Checkout completed: {session.get('id')}")
+        print(f"   Customer: {session.get('customer')}")
+        print(f"   Amount: {session.get('amount_total')}")
+        
+        # Your logic here...
+        
+    elif event_type == 'customer.subscription.updated':
+        subscription = event_data
+        print(f"🔄 Subscription updated: {subscription.get('id')}")
+        print(f"   Status: {subscription.get('status')}")
+        
+    elif event_type == 'customer.subscription.deleted':
+        subscription = event_data
+        print(f"❌ Subscription deleted: {subscription.get('id')}")
+        
+    elif event_type == 'invoice.paid':
+        invoice = event_data
+        print(f"💰 Invoice paid: {invoice.get('id')}")
+        print(f"   Amount: {invoice.get('amount_paid')}")
+        
+    elif event_type == 'invoice.payment_failed':
+        invoice = event_data
+        print(f"⚠️ Invoice payment failed: {invoice.get('id')}")
+        
+    elif event_type in ['product.created', 'price.created']:
+        # Just acknowledge these events
+        print(f"✅ {event_type} - acknowledged")
+        
+    else:
+        print(f"ℹ️ Unhandled event type: {event_type}")
+    
+    # Always return 200 to acknowledge receipt
+    return HttpResponse("Webhook received", status=200)
+
