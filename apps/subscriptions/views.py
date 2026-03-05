@@ -38,12 +38,19 @@ def checkout_view(request, plan_id):
     """Handle checkout for a specific plan"""
     plan = get_object_or_404(Plan, id=plan_id, is_active=True)
     
+    # Check if Stripe is configured
+    if not settings.STRIPE_SECRET_KEY:
+        messages.error(request, "Payment system is not configured.")
+        return redirect('subscriptions:plans')
+    
+    stripe.api_key = settings.STRIPE_SECRET_KEY
+    
     # Check if user already has active subscription
     if Subscription.objects.filter(user=request.user, status='active').exists():
         messages.warning(request, "You already have an active subscription.")
         return redirect('subscriptions:manage')
     
-    # Handle free plans immediately
+    # Handle free plans
     if plan.price == 0:
         return activate_free_plan(request, plan)
     
@@ -61,11 +68,13 @@ def checkout_view(request, plan_id):
             request.user.profile.stripe_customer_id = customer_id
             request.user.profile.save()
         
-        # Create checkout session
         success_url = request.build_absolute_uri(
-            reverse('subscriptions:success') + '?session_id={CHECKOUT_SESSION_ID}'
-        )
+            reverse('subscriptions:success')
+        ) + '?session_id={CHECKOUT_SESSION_ID}'
+        
         cancel_url = request.build_absolute_uri(reverse('subscriptions:cancel'))
+        
+        print(f"🔗 Success URL being sent to Stripe: {success_url}")
         
         session = stripe.checkout.Session.create(
             customer=customer_id,
@@ -94,12 +103,17 @@ def checkout_view(request, plan_id):
             }
         )
         
+        print(f"✅ Checkout session created: {session.id}")
+        print(f"✅ Checkout URL: {session.url}")
+        
         return redirect(session.url, code=303)
         
     except stripe.error.StripeError as e:
+        print(f"❌ Stripe error: {e}")
         messages.error(request, f"Payment error: {str(e)}")
         return redirect('subscriptions:plans')
     except Exception as e:
+        print(f"❌ Error: {e}")
         messages.error(request, f"Error: {str(e)}")
         return redirect('subscriptions:plans')
 
@@ -131,60 +145,95 @@ def activate_free_plan(request, plan):
 def success_view(request):
     """Payment success page"""
     session_id = request.GET.get('session_id')
+    plan_id = request.GET.get('plan_id')
     
-    # Check if user already has subscription (maybe created by webhook)
-    subscription = Subscription.objects.filter(
-        user=request.user,
-        status='active'
-    ).first()
+    print(f"🔍 Success view called")
+    print(f"🔍 Session ID from URL: {session_id}")
+    print(f"🔍 Plan ID from URL: {plan_id}")
     
-    # If no subscription yet and we have session_id, try to create it
-    if not subscription and session_id and session_id != '{CHECKOUT_SESSION_ID}':
+    # Check if this is a real session ID (not the placeholder)
+    if session_id and session_id != '{CHECKOUT_SESSION_ID}':
+        print(f"✅ Valid session ID detected: {session_id[:15]}...")
+        
         try:
             # Retrieve the session from Stripe
+            stripe.api_key = settings.STRIPE_SECRET_KEY
             session = stripe.checkout.Session.retrieve(session_id)
             
-            if session.payment_status == 'paid':
-                # Get plan_id from metadata
-                plan_id = session.metadata.get('plan_id')
+            print(f"✅ Session retrieved from Stripe")
+            print(f"✅ Payment status: {session.payment_status}")
+            print(f"✅ Session metadata: {session.metadata}")
+            
+            # Check if payment was successful
+            if session.payment_status == 'paid' or session.payment_status == 'complete':
+                # Get plan from metadata or URL
+                if not plan_id and session.metadata:
+                    plan_id = session.metadata.get('plan_id')
+                
                 if plan_id:
+                    from .models import Plan, Subscription, Payment
+                    from django.utils import timezone
+                    from datetime import timedelta
+                    
                     plan = Plan.objects.get(id=plan_id)
                     
-                    # Create subscription
-                    end_date = timezone.now() + timedelta(days=plan.duration_days)
-                    
-                    subscription = Subscription.objects.create(
+                    # Check if subscription already exists
+                    existing_sub = Subscription.objects.filter(
                         user=request.user,
                         plan=plan,
-                        stripe_subscription_id=session.subscription,
-                        stripe_customer_id=session.customer,
-                        status='active',
-                        start_date=timezone.now(),
-                        end_date=end_date
-                    )
+                        status='active'
+                    ).first()
                     
-                    # Update profile
-                    request.user.profile.subscription_status = 'premium'
-                    request.user.profile.stripe_subscription_id = session.subscription
-                    request.user.profile.subscription_end_date = end_date
-                    request.user.profile.save()
-                    
-                    # Create payment record
-                    Payment.objects.create(
-                        user=request.user,
-                        subscription=subscription,
-                        stripe_payment_intent_id=session.get('payment_intent', ''),
-                        amount=plan.price,
-                        status='succeeded',
-                        description=f"Subscription to {plan.name} plan"
-                    )
-                    
-                    messages.success(request, f"Successfully subscribed to {plan.name} plan!")
-                    
+                    if not existing_sub:
+                        # Calculate end date
+                        end_date = timezone.now() + timedelta(days=plan.duration_days)
+                        
+                        # Create subscription
+                        subscription = Subscription.objects.create(
+                            user=request.user,
+                            plan=plan,
+                            stripe_subscription_id=session.get('subscription', f'temp_{session.id[:8]}'),
+                            stripe_customer_id=session.customer,
+                            status='active',
+                            start_date=timezone.now(),
+                            end_date=end_date
+                        )
+                        
+                        # Update user profile
+                        profile = request.user.profile
+                        profile.subscription_status = 'premium'
+                        profile.stripe_subscription_id = subscription.stripe_subscription_id
+                        profile.subscription_end_date = end_date
+                        profile.save()
+                        
+                        # Create payment record
+                        Payment.objects.create(
+                            user=request.user,
+                            subscription=subscription,
+                            stripe_payment_intent_id=session.get('payment_intent', ''),
+                            amount=plan.price,
+                            status='succeeded',
+                            description=f"Subscription to {plan.name} plan"
+                        )
+                        
+                        messages.success(request, f"Successfully subscribed to {plan.name} plan!")
+                        print(f"✅ Subscription created for user {request.user.username}")
+                    else:
+                        print(f"ℹ️ Subscription already exists")
+                else:
+                    print(f"❌ No plan_id found in request or metadata")
+            else:
+                print(f"❌ Payment not successful: {session.payment_status}")
+                
         except Exception as e:
-            print(f"Error in success_view: {e}")
+            print(f"❌ Error retrieving session: {e}")
+            import traceback
+            traceback.print_exc()
+    else:
+        print(f"❌ Invalid session ID: {session_id}")
+        print(f"   This is the Stripe placeholder - waiting for redirect with real ID")
     
-    # Get fresh subscription data
+    # Get the user's active subscription
     subscription = Subscription.objects.filter(
         user=request.user,
         status='active'
